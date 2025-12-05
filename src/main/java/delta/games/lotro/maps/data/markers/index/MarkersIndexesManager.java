@@ -5,9 +5,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import delta.common.utils.text.EncodingNames;
-import delta.games.lotro.maps.data.markers.index.io.xml.MarkersIndexXMLParser;
-import delta.games.lotro.maps.data.markers.index.io.xml.MarkersIndexXMLWriter;
+import delta.games.lotro.maps.data.markers.index.io.bin.MarkersIndexBinaryParser;
+import delta.games.lotro.maps.data.markers.index.io.bin.MarkersIndexBinaryWriter;
 
 /**
  * Manager for all marker indexes.
@@ -44,7 +43,7 @@ public class MarkersIndexesManager
       File from=getFileForDidIndex(did);
       if (from.exists())
       {
-        index=loadIndex(from,did);
+        index=loadBinaryIndex(from,did);
       }
       else
       {
@@ -69,7 +68,7 @@ public class MarkersIndexesManager
       File from=getFileForContentLayerIndex(contentLayerId);
       if (from.exists())
       {
-        index=loadIndex(from,contentLayerId);
+        index=loadBinaryIndex(from,contentLayerId);
       }
       else
       {
@@ -103,14 +102,14 @@ public class MarkersIndexesManager
    */
   public void writeIndexes()
   {
-    MarkersIndexXMLWriter writer=new MarkersIndexXMLWriter();
+    MarkersIndexBinaryWriter binaryWriter=new MarkersIndexBinaryWriter();
     // DID indexes
     for(Map.Entry<Integer,MarkersIndex> entry : _didIndexes.entrySet())
     {
       int did=entry.getKey().intValue();
       MarkersIndex index=entry.getValue();
       File to=getFileForDidIndex(did);
-      writer.write(to,index,EncodingNames.UTF_8);
+      binaryWriter.write(to,index);
     }
     // Content layers indexes
     for(Map.Entry<Integer,MarkersIndex> entry : _contentLayerIndexes.entrySet())
@@ -118,26 +117,26 @@ public class MarkersIndexesManager
       int contentLayerId=entry.getKey().intValue();
       MarkersIndex index=entry.getValue();
       File to=getFileForContentLayerIndex(contentLayerId);
-      writer.write(to,index,EncodingNames.UTF_8);
+      binaryWriter.write(to,index);
     }
   }
 
-  private MarkersIndex loadIndex(File from, int key)
+  private MarkersIndex loadBinaryIndex(File from, int key)
   {
-    MarkersIndexXMLParser parser=new MarkersIndexXMLParser();
-    MarkersIndex index=parser.parseXML(from,key);
+    MarkersIndexBinaryParser parser=new MarkersIndexBinaryParser();
+    MarkersIndex index=parser.parse(from,key);
     return index;
   }
 
   private File getFileForDidIndex(int did)
   {
     File didIndexsDir=new File(_indexesDir,"did");
-    return new File(didIndexsDir,did+".xml");
+    return new File(didIndexsDir,did+".bin");
   }
 
  private File getFileForContentLayerIndex(int contentLayerId)
  {
    File layerIndexsDir=new File(_indexesDir,"layers");
-   return new File(layerIndexsDir,contentLayerId+".xml");
+   return new File(layerIndexsDir,contentLayerId+".bin");
  }
 }
