@@ -115,7 +115,16 @@ public class GeoreferencedBasemapsManager
    */
   public File getBasemapImageFile(int basemapId)
   {
-    return new File(_rootDir,basemapId+".png");
+    File pngFile=new File(_rootDir,basemapId+".png");
+    if (!pngFile.exists())
+    {
+      File jpgFile=new File(_rootDir,basemapId+".jpg");
+      if (jpgFile.exists())
+      {
+        return jpgFile;
+      }
+    }
+    return pngFile;
   }
 
   /**
