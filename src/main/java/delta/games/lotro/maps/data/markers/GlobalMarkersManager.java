@@ -156,7 +156,16 @@ public class GlobalMarkersManager
   private File getBlockFile(int region, int xBlock, int yBlock)
   {
     String fileName="markers-"+getKey(region,xBlock,yBlock)+".xml";
-    return new File(_rootDir,fileName);
+    File xmlFile=new File(_rootDir,fileName);
+    if (!xmlFile.exists())
+    {
+      File gzFile=new File(_rootDir,fileName+".gz");
+      if (gzFile.exists())
+      {
+        return gzFile;
+      }
+    }
+    return xmlFile;
   }
 
   private String getKey(int region, int xBlock, int yBlock)

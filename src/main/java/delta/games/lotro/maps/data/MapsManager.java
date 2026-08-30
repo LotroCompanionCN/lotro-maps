@@ -93,6 +93,14 @@ public class MapsManager
     _markersFinder=new MarkersFinder(indexsMgr,_markersManager);
     // Links
     _linksFile=new File(rootDir,"links.xml");
+    if (!_linksFile.exists())
+    {
+      File gzFile=new File(rootDir,"links.xml.gz");
+      if (gzFile.exists())
+      {
+        _linksFile=gzFile;
+      }
+    }
     _linksManager=new LinksManager(_linksFile);
   }
 

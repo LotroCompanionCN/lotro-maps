@@ -62,7 +62,16 @@ public class GeoreferencedBasemapsManager
 
   private File getMapsFile()
   {
-    return new File(_rootDir,"maps.xml");
+    File xmlFile=new File(_rootDir,"maps.xml");
+    if (!xmlFile.exists())
+    {
+      File gzFile=new File(_rootDir,"maps.xml.gz");
+      if (gzFile.exists())
+      {
+        return gzFile;
+      }
+    }
+    return xmlFile;
   }
 
   /**

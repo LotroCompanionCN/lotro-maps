@@ -61,7 +61,16 @@ public class CategoriesManager
    */
   public File getCategoriesFile()
   {
-    return new File(_categoriesDir,"categories.xml");
+    File xmlFile=new File(_categoriesDir,"categories.xml");
+    if (!xmlFile.exists())
+    {
+      File gzFile=new File(_categoriesDir,"categories.xml.gz");
+      if (gzFile.exists())
+      {
+        return gzFile;
+      }
+    }
+    return xmlFile;
   }
 
   /**
