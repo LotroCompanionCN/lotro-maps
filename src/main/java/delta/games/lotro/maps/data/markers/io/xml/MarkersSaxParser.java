@@ -1,8 +1,11 @@
 package delta.games.lotro.maps.data.markers.io.xml;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -53,7 +56,17 @@ public final class MarkersSaxParser extends DefaultHandler
       SAXParserFactory factory=SAXParserFactory.newInstance();
       factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
       SAXParser saxParser=factory.newSAXParser();
-      saxParser.parse(source,this);
+      if (source.getName().endsWith(".gz"))
+      {
+        try (InputStream is=new GZIPInputStream(new FileInputStream(source)))
+        {
+          saxParser.parse(is,this);
+        }
+      }
+      else
+      {
+        saxParser.parse(source,this);
+      }
       saxParser.reset();
       return _parsedMarkers;
     }
