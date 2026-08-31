@@ -1,18 +1,21 @@
 package delta.games.lotro.maps.data.markers.index.io.bin;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.HashSet;
+import java.util.zip.GZIPInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import delta.common.utils.io.FileIO;
 import delta.games.lotro.maps.data.markers.index.MarkersIndex;
 
 /**
- * Parser for the markers indexes stored in a binary format.
+ * Parser for the markers indexes stored in a binary format (plain or gzipped).
  * @author DAM
  */
 public class MarkersIndexBinaryParser
@@ -20,7 +23,7 @@ public class MarkersIndexBinaryParser
   private static final Logger LOGGER=LoggerFactory.getLogger(MarkersIndexBinaryParser.class);
 
   /**
-   * Parse the XML file.
+   * Parse the binary index file.
    * @param source Source file.
    * @param key Index key.
    * @return Parsed index or <code>null</code>.
@@ -28,16 +31,29 @@ public class MarkersIndexBinaryParser
   public MarkersIndex parse(File source, int key)
   {
     HashSet<Integer> ids=new HashSet<Integer>();
-    byte[] buffer=FileIO.readFile(source);
-    long length=source.length();
-    long nbMarkers=length/4;
-    DataInputStream dis=new DataInputStream(new ByteArrayInputStream(buffer));
     try
     {
-      for(int i=0;i<nbMarkers;i++)
+      InputStream is=new BufferedInputStream(new FileInputStream(source));
+      if (source.getName().endsWith(".gz"))
       {
-        int id=dis.readInt();
-        ids.add(Integer.valueOf(id));
+        is=new GZIPInputStream(is);
+      }
+      DataInputStream dis=new DataInputStream(is);
+      try
+      {
+        while (dis.available()>0 || is instanceof BufferedInputStream)
+        {
+          int id=dis.readInt();
+          ids.add(Integer.valueOf(id));
+        }
+      }
+      catch (java.io.EOFException eof)
+      {
+        // End of stream reached
+      }
+      finally
+      {
+        dis.close();
       }
       return new MarkersIndex(key,ids);
     }

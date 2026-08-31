@@ -131,12 +131,30 @@ public class MarkersIndexesManager
   private File getFileForDidIndex(int did)
   {
     File didIndexsDir=new File(_indexesDir,"did");
-    return new File(didIndexsDir,did+".bin");
+    File binFile=new File(didIndexsDir,did+".bin");
+    if (!binFile.exists())
+    {
+      File gzFile=new File(didIndexsDir,did+".bin.gz");
+      if (gzFile.exists())
+      {
+        return gzFile;
+      }
+    }
+    return binFile;
   }
 
- private File getFileForContentLayerIndex(int contentLayerId)
- {
-   File layerIndexsDir=new File(_indexesDir,"layers");
-   return new File(layerIndexsDir,contentLayerId+".bin");
- }
+  private File getFileForContentLayerIndex(int contentLayerId)
+  {
+    File layerIndexsDir=new File(_indexesDir,"layers");
+    File binFile=new File(layerIndexsDir,contentLayerId+".bin");
+    if (!binFile.exists())
+    {
+      File gzFile=new File(layerIndexsDir,contentLayerId+".bin.gz");
+      if (gzFile.exists())
+      {
+        return gzFile;
+      }
+    }
+    return binFile;
+  }
 }
