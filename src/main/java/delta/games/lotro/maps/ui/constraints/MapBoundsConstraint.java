@@ -24,6 +24,15 @@ public class MapBoundsConstraint implements MapConstraint
     _bounds=bounds;
   }
 
+  /**
+   * Get the geographic bounds.
+   * @return the geographic bounds.
+   */
+  public GeoBox getBounds()
+  {
+    return _bounds;
+  }
+
   @Override
   public GeoPoint checkNewStart(GeoPoint newStart, float geo2Pixel)
   {

@@ -22,6 +22,10 @@ import javax.swing.JPanel;
 import delta.common.ui.swing.GuiFactory;
 import delta.common.ui.swing.labels.LabelWithHalo;
 import delta.common.ui.swing.panels.AbstractPanelController;
+import delta.games.lotro.maps.data.GeoBox;
+import delta.games.lotro.maps.data.GeoReference;
+import delta.games.lotro.maps.ui.constraints.MapBoundsConstraint;
+import delta.games.lotro.maps.ui.constraints.MapConstraint;
 import delta.games.lotro.maps.ui.controllers.SelectionController;
 import delta.games.lotro.maps.ui.layers.Layer;
 import delta.games.lotro.maps.ui.layers.MarkersLayer;
@@ -95,14 +99,17 @@ public class MapPanelController extends AbstractPanelController
     // Layers manager
     addLayersButton();
     // Resize handling: when the layered pane is resized (resizable window),
-    // re-layout the canvas and the overlay controls to fit the new size.
+    // re-fit the map content to the new size and re-layout the overlay controls.
     _resizeListener=new ComponentAdapter()
     {
       @Override
       public void componentResized(ComponentEvent e)
       {
         Dimension size=_layers.getSize();
-        layoutChildren(size);
+        if ((size.width>0) && (size.height>0))
+        {
+          refitView(size);
+        }
       }
     };
     _layers.addComponentListener(_resizeListener);
@@ -303,6 +310,38 @@ public class MapPanelController extends AbstractPanelController
   {
     _layers.setPreferredSize(viewSize);
     layoutChildren(viewSize);
+  }
+
+  /**
+   * Fit the map content to the given size, so the whole geographic content is visible.
+   * @param size Size of the view (pixels).
+   */
+  private void refitView(Dimension size)
+  {
+    GeoBox bounds=getContentBounds();
+    if (bounds==null)
+    {
+      layoutChildren(size);
+      return;
+    }
+    GeoReference viewReference=MapUiUtils.computeFitViewReference(bounds,size);
+    _canvas.setViewReference(viewReference);
+    MapUiUtils.configureConstraints(_canvas,bounds,viewReference.getGeo2PixelFactor());
+    layoutChildren(size);
+  }
+
+  /**
+   * Get the geographic bounds of the map content.
+   * @return some geographic bounds, or <code>null</code> if not defined.
+   */
+  private GeoBox getContentBounds()
+  {
+    MapConstraint constraint=_canvas.getConstraint();
+    if (constraint instanceof MapBoundsConstraint)
+    {
+      return ((MapBoundsConstraint)constraint).getBounds();
+    }
+    return null;
   }
 
   /**

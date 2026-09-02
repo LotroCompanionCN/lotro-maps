@@ -67,4 +67,17 @@ public class MapUiUtils
     float yGeo2Pixel=pixelMaxSize.height/deltaLat;
     return Math.min(xGeo2Pixel,yGeo2Pixel);
   }
+
+  /**
+   * Compute the view reference that fits the given geographic bounds into the given pixel size.
+   * @param geoBounds Geographic bounds to fit.
+   * @param pixelSize Target pixel size.
+   * @return A view reference that shows the whole bounds in the given pixel size.
+   */
+  public static GeoReference computeFitViewReference(GeoBox geoBounds, Dimension pixelSize)
+  {
+    GeoPoint start=new GeoPoint(geoBounds.getMin().getLongitude(),geoBounds.getMax().getLatitude());
+    float geo2Pixel=computeZoom(pixelSize,geoBounds);
+    return new GeoReference(start,geo2Pixel);
+  }
 }

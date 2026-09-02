@@ -84,6 +84,15 @@ public class MapCanvas extends JPanel implements MapView
   }
 
   /**
+   * Get the map constraint.
+   * @return the map constraint.
+   */
+  public MapConstraint getConstraint()
+  {
+    return _constraint;
+  }
+
+  /**
    * Get geographic bounds for this view.
    * @return some geographic bounds.
    */
