@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -58,6 +60,7 @@ public class MapPanelController extends AbstractPanelController
   private List<JButton> _buttons; 
   private MouseAdapter _zoomListener;
   private MouseAdapter _panListener;
+  private ComponentAdapter _resizeListener;
 
   /**
    * Constructor.
@@ -91,6 +94,18 @@ public class MapPanelController extends AbstractPanelController
     _buttons=new ArrayList<JButton>();
     // Layers manager
     addLayersButton();
+    // Resize handling: when the layered pane is resized (resizable window),
+    // re-layout the canvas and the overlay controls to fit the new size.
+    _resizeListener=new ComponentAdapter()
+    {
+      @Override
+      public void componentResized(ComponentEvent e)
+      {
+        Dimension size=_layers.getSize();
+        layoutChildren(size);
+      }
+    };
+    _layers.addComponentListener(_resizeListener);
     setPanel(_canvas);
   }
 
@@ -286,16 +301,27 @@ public class MapPanelController extends AbstractPanelController
    */
   public void setViewSize(Dimension viewSize)
   {
-    _canvas.setSize(viewSize);
     _layers.setPreferredSize(viewSize);
-    int height=viewSize.height;
+    layoutChildren(viewSize);
+  }
+
+  /**
+   * Lay out the canvas and the overlay controls for the given size.
+   * @param size Size of the view (pixels).
+   */
+  private void layoutChildren(Dimension size)
+  {
+    _canvas.setSize(size);
+    int width=size.width;
+    int height=size.height;
     // Place location display (lower left)
     JPanel locationPanel=_locationDisplay.getPanel();
     locationPanel.setSize(100,40);
-    locationPanel.setLocation(0,height-locationPanel.getHeight());
+    int locationY=Math.max(0,height-locationPanel.getHeight());
+    locationPanel.setLocation(0,locationY);
     // Place 'labeled' checkbox
     _labeled.setSize(_labeled.getPreferredSize());
-    _labeled.setLocation(viewSize.width-_labeled.getWidth()-10,17);
+    _labeled.setLocation(Math.max(0,width-_labeled.getWidth()-10),17);
     // Place the 'layers' button
     int x=10;
     for(JButton button : _buttons)
@@ -354,6 +380,14 @@ public class MapPanelController extends AbstractPanelController
       _layersButton=null;
     }
     // UI
+    if (_resizeListener!=null)
+    {
+      if (_layers!=null)
+      {
+        _layers.removeComponentListener(_resizeListener);
+      }
+      _resizeListener=null;
+    }
     _layers=null;
     _labeled=null;
     _buttons=null;
