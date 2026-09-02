@@ -23,6 +23,7 @@ import delta.common.ui.swing.GuiFactory;
 import delta.common.ui.swing.labels.LabelWithHalo;
 import delta.common.ui.swing.panels.AbstractPanelController;
 import delta.games.lotro.maps.data.GeoBox;
+import delta.games.lotro.maps.data.GeoPoint;
 import delta.games.lotro.maps.data.GeoReference;
 import delta.games.lotro.maps.ui.constraints.MapBoundsConstraint;
 import delta.games.lotro.maps.ui.constraints.MapConstraint;
@@ -99,7 +100,8 @@ public class MapPanelController extends AbstractPanelController
     // Layers manager
     addLayersButton();
     // Resize handling: when the layered pane is resized (resizable window),
-    // re-fit the map content to the new size and re-layout the overlay controls.
+    // keep the current map center and zoom level (Google-Maps style), and only
+    // re-lay out the canvas and the overlay controls to the new size.
     _resizeListener=new ComponentAdapter()
     {
       @Override
@@ -108,7 +110,7 @@ public class MapPanelController extends AbstractPanelController
         Dimension size=_layers.getSize();
         if ((size.width>0) && (size.height>0))
         {
-          refitView(size);
+          keepViewCentered(size);
         }
       }
     };
@@ -322,6 +324,39 @@ public class MapPanelController extends AbstractPanelController
     {
       refitView(size);
     }
+  }
+
+  /**
+   * Resize the view while keeping the current geographic center and zoom level.
+   * <p>The map is treated as a viewport: growing the window reveals more
+   * surrounding area, shrinking it clips; the content is never reset.</p>
+   * @param size New size of the view (pixels).
+   */
+  private void keepViewCentered(Dimension size)
+  {
+    GeoReference reference=_canvas.getViewReference();
+    if (reference==null)
+    {
+      layoutChildren(size);
+      return;
+    }
+    Dimension oldSize=_canvas.getSize();
+    int oldWidth=oldSize.width;
+    int oldHeight=oldSize.height;
+    if ((oldWidth<=0) || (oldHeight<=0))
+    {
+      layoutChildren(size);
+      return;
+    }
+    float geo2Pixel=reference.getGeo2PixelFactor();
+    GeoPoint start=reference.getStart();
+    float lonCenter=start.getLongitude()+(oldWidth/2.0f)/geo2Pixel;
+    float latCenter=start.getLatitude()-(oldHeight/2.0f)/geo2Pixel;
+    float newStartLon=lonCenter-(size.width/2.0f)/geo2Pixel;
+    float newStartLat=latCenter+(size.height/2.0f)/geo2Pixel;
+    GeoReference newReference=new GeoReference(new GeoPoint(newStartLon,newStartLat),geo2Pixel);
+    _canvas.setViewReference(newReference);
+    layoutChildren(size);
   }
 
   /**
