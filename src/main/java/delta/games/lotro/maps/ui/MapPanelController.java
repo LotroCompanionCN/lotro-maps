@@ -313,6 +313,18 @@ public class MapPanelController extends AbstractPanelController
   }
 
   /**
+   * Fit the map content to the current view size.
+   */
+  public void fitToCurrentSize()
+  {
+    Dimension size=_layers.getSize();
+    if ((size.width>0) && (size.height>0))
+    {
+      refitView(size);
+    }
+  }
+
+  /**
    * Fit the map content to the given size, so the whole geographic content is visible.
    * @param size Size of the view (pixels).
    */
